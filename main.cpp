@@ -1,34 +1,37 @@
-#include <igl/opengl/glfw/Viewer.h>
+#include <Eigen/Dense>
 
-int main(int argc, char *argv[])
-{
-  // Inline mesh of a cube
-  const Eigen::MatrixXd V= (Eigen::MatrixXd(8,3)<<
-    0.0,0.0,0.0,
-    0.0,0.0,1.0,
-    0.0,1.0,0.0,
-    0.0,1.0,1.0,
-    1.0,0.0,0.0,
-    1.0,0.0,1.0,
-    1.0,1.0,0.0,
-    1.0,1.0,1.0).finished();
-  const Eigen::MatrixXi F = (Eigen::MatrixXi(12,3)<<
-    1,7,5,
-    1,3,7,
-    1,4,3,
-    1,2,4,
-    3,8,7,
-    3,4,8,
-    5,7,8,
-    5,8,6,
-    1,5,6,
-    1,6,2,
-    2,6,8,
-    2,8,4).finished().array()-1;
+#include "assignment_setup.h"
 
-  // Plot the mesh
-  igl::opengl::glfw::Viewer viewer;
-  viewer.data().set_mesh(V, F);
-  viewer.data().set_face_based(true);
-  viewer.launch();
+double dt = 0.001;
+double t = 0.0;
+
+bool simulating = true;
+
+extern igl::opengl::glfw::Viewer viewer;
+
+bool simulation_callback() {
+    while (simulating) {
+        simulate(dt, t);
+        t += dt;
+    }
+
+    return false;
+}
+
+bool draw_callback(igl::opengl::glfw::Viewer &viewer) {
+    draw(t);
+    return false;
+}
+
+int main(int argc, char *argv[]) {
+    // Set up the model
+    assignment_setup(argc, argv);
+
+    // Run the simulation on a separate thread
+    std::thread simulation_thread(simulation_callback);
+    simulation_thread.detach();
+
+    // Visualize Everything
+    viewer.callback_post_draw = &draw_callback;
+    viewer.launch();
 }

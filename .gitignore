@@ -32,3 +32,9 @@
 *.swp
 
 build/*
+
+# MacOS files
+.DS_STORE
+
+# VSCode files
+settings.json
